@@ -1,5 +1,5 @@
-import { fetchLogin, fetchLogout, fetchTodos, fetchAddTodo, fetchLoggedInUsers } from './services';
-import { waitOnTodos, waitOnLogin, setTodos, setError, login, logout, addTodo, setLoggedInUsers } from './state';
+import { fetchLogin, fetchLogout, fetchChats, fetchAddChat, fetchLoggedInUsers } from './services';
+import { waitOnLogin, setChats, setError, login, logout, addChat, setLoggedInUsers } from './state';
 import { render, renderLoggedInUsers } from './render';
 
 export function addAbilityToLogin({ state, appEl }) {
@@ -17,10 +17,10 @@ export function addAbilityToLogin({ state, appEl }) {
             .then(fetchLoggedInUsers)
             .then(loggedInUersData => {
                 setLoggedInUsers(loggedInUersData.loggedUsers);
-                return fetchTodos();
+                return fetchChats();
             })
-            .then(todos => {
-                setTodos(todos);
+            .then(chats => {
+                setChats(chats);
                 render({ state, appEl });
             })
             .catch(err => {
@@ -53,35 +53,18 @@ export function addAbilityToLogout({ state, appEl, loginUserEl }) {
     });
 }
 
-export function addAbilityToRefresh({ state, appEl }) {
-    appEl.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('controls__refresh')) {
-            return;
-        }
-
-        waitOnTodos();
-        fetchTodos()
-            .then(todos => {
-                setTodos(todos);
-                render({ state, appEl });
-            })
-            .catch(err => {
-                setError(err?.error || 'ERROR');
-                render({ state, appEl });
-            });
-    });
-}
-
-export function addAbilityToAddTodo({ state, appEl }) {
+export function addAbilityToAddChat({ state, appEl }) {
     appEl.addEventListener('submit', (e) => {
         if (!e.target.classList.contains('add__form')) {
             return;
         }
 
-        const task = appEl.querySelector('.add__task').value;
-        fetchAddTodo(task)
-            .then(todo => {
-                addTodo({ id: todo.id, todo });
+        const author = state.username;
+        const message = appEl.querySelector('.add__task').value;
+
+        fetchAddChat(author, message)
+            .then(chat => {
+                addChat(chat);
                 render({ state, appEl });
             })
             .catch(err => {

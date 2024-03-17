@@ -38,18 +38,18 @@ export function fetchLogout() {
         .then(handleResponse);
 }
 
-export function fetchTodos() {
-    return fetch('/api/v1/todos')
+export function fetchChats() {
+    return fetch('/api/v1/chats')
         .catch(handleNetworkError)
         .then(handleResponse);
 }
 
-export function fetchAddTodo(task) {
-    return fetch('/api/v1/todos', {
+export function fetchAddChat(author, message) {
+    return fetch('/api/v1/chats', {
         method: 'POST',
         credentials: 'include',
         headers: new Headers({ 'content-type': 'application/json' }),
-        body: JSON.stringify({ task }),
+        body: JSON.stringify({ author, message }),
     })
         .catch(handleNetworkError)
         .then(handleResponse);

@@ -8,16 +8,18 @@ body {
     margin: 0;
 
     font-family: sans-serif;
+
+    padding: 10rem;
 }
 
-.todos {
+.chats {
     margin: 0;
     padding: 0;
 
     list-style-type: none;
 }
 
-.todo {
+.chat {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -26,14 +28,7 @@ body {
     min-height: 54px;
 }
 
-
-.todo:hover,
-.todo:focus {
-    background-color: #363;
-    color: white;
-}
-
-.todo label {
+.chat label {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -42,36 +37,7 @@ body {
     min-height: 54px;
 }
 
-.todo__text--complete {
-    text-decoration: line-through;
-}
-
-
-.todo__delete {
-    display: none;
-
-    border: none;
-    margin-left: 0.25rem;
-    min-width: 54px;
-    min-height: 54px;
-
-    background-color: transparent;
-    font-size: 0.8rem;
-    cursor: pointer;
-}
-
-.todo__delete:hover {
-    border: 1px solid black;
-    filter: brightness(2);
-    background-color: #364;
-}
-
-.todo:focus-within .todo__delete,
-.todo:hover .todo__delete {
-    display: inline-block;
-}
-
-.todo__text--added {
+.chat__text--added {
     animation: fadeIn 1s;
 }
 

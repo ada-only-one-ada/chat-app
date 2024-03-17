@@ -1,34 +1,23 @@
 const uuid = require('uuid').v4;
 
-function makeTodoList() {
-    const todoList = {};
-    const todos = {};
+function makeChatRoom() {
+    const chats = [];
 
-    todoList.contains = function contains(id) {
-        return !!todos[id];
-    };
+    function addChat(author, message) {
+        const newChat = { author, message };
+        chats.push(newChat);
+        return newChat;
+    }
 
-    todoList.getTodos = function getTodos() {
-        return todos;
-    };
+    function getChats() {
+        return chats;
+    }
 
-    todoList.addTodo = function addTodo(task) {
-        const id = uuid();
-        todos[id] = {
-            id,
-            task,
-            done: false,
-        };
-        return id;
-    };
-
-    todoList.getTodo = function getTodo(id) {
-        return todos[id];
-    };
-
-    return todoList;
+    return {
+        addChat, getChats
+    }
 };
 
 module.exports = {
-    makeTodoList,
+    makeChatRoom,
 };

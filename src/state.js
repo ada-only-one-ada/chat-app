@@ -1,12 +1,11 @@
 import { MESSAGES } from './constants';
 
 const state = {
-    todos: {},
+    chats: [],
     isLoggedIn: false,
     isLoginPending: true,
-    isTodoPending: false,
+    isChatPending: false,
     username: '',
-    lastAddedTodoId: '',
     loggedInUsers: [],
     error: '',
 };
@@ -23,7 +22,6 @@ export function login(username) {
     state.isLoginPending = false;
     state.username = username;
     state.error = '';
-    state.lastAddedTodoId = '';
 }
 
 export function logout() {
@@ -31,24 +29,21 @@ export function logout() {
     state.isLoginPending = false;
     state.username = '';
     state.error = '';
-    state.todos = {};
 }
 
-export function waitOnTodos() {
-    state.isTodoPending = true;
+export function waitOnChats() {
+    state.isChatPending = true;
     state.error = '';
 }
 
-export function setTodos(todos) {
-    state.todos = todos;
-    state.isTodoPending = false;
-    state.lastAddedTodoId = '';
+export function setChats(chats) {
+    state.chats = chats;
+    state.isChatPending = false;
     state.error = '';
 }
 
-export function addTodo({ id, todo }) {
-    state.todos[id] = todo;
-    state.lastAddedTodoId = id;
+export function addChat(chat) {
+    state.chats.push(chat);
     state.error = '';
 }
 

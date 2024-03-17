@@ -1,8 +1,8 @@
 import { SERVER, CLIENT } from './constants';
-import state, { login, logout, setTodos, setError, setLoggedInUsers } from './state';
-import { fetchTodos, fetchSession, fetchLoggedInUsers } from './services';
+import state, { login, logout, setChats, setError, setLoggedInUsers } from './state';
+import { fetchChats, fetchSession, fetchLoggedInUsers } from './services';
 import { render, renderLoggedInUsers } from './render';
-import { addAbilityToLogin, addAbilityToLogout, addAbilityToRefresh, addAbilityToAddTodo } from './listeners';
+import { addAbilityToLogin, addAbilityToLogout, addAbilityToAddChat } from './listeners';
 
 const appEl = document.querySelector('#app');
 const loginUserEl = document.querySelector('#users');
@@ -12,7 +12,7 @@ function checkForSession() {
         .then(session => {
             login(session.username);
             render({ state, appEl });
-            return Promise.all([fetchTodos(), fetchLoggedInUsers()]);
+            return Promise.all([fetchChats(), fetchLoggedInUsers()]);
         })
         .catch(err => {
             if (err?.error === SERVER.AUTH_MISSING) {
@@ -20,8 +20,8 @@ function checkForSession() {
             }
             return Promise.reject(err);
         })
-        .then(([todos, loggedInUsers]) => {
-            setTodos(todos);
+        .then(([chats, loggedInUsers]) => {
+            setChats(chats);
             setLoggedInUsers(loggedInUsers.loggedInUsers);
             render({ state, appEl });
             renderLoggedInUsers({ state, loginUserEl });
@@ -49,20 +49,20 @@ function periodicallyUpdateLoggedInUsers() {
         }
     }, 3000);
 }
-/*
-function periodicallyUpdateTodos() {
+
+function periodicallyUpdateChats() {
     setInterval(() => {
         if (state.isLoggedIn) {
-            fetchTodos()
-                .then(todos => {
-                    setTodos(todos);
+            fetchChats()
+                .then(chats => {
+                    setChats(chats);
                     render({ state, appEl });
                 })
                 .catch(err => console.error("Error updating logged-in users: ", err));
         }
     }, 3000);
 }
-*/
+
 
 function setupApp() {
     checkForSession();
@@ -70,12 +70,11 @@ function setupApp() {
     addAbilityToLogin({ state, appEl });
     addAbilityToLogout({ state, appEl, loginUserEl });
 
-    addAbilityToRefresh({ state, appEl });
-    addAbilityToAddTodo({ state, appEl });
+    addAbilityToAddChat({ state, appEl });
 
     render({ state, appEl });
     periodicallyUpdateLoggedInUsers();
-    //periodicallyUpdateTodos();
+    periodicallyUpdateChats();
 }
 
 setupApp();
