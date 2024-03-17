@@ -12,9 +12,11 @@ app.use(cookieParser());
 app.use(express.static('./public'));
 app.use(express.json());
 
-let loggedInUsers = [];
+let loggedInUsers = {};
+
 app.get('/api/v1/loggedInUsers', (req, res) => {
-    res.json({ loggedInUsers });
+    const userNames = Object.values(loggedInUsers);
+    res.json({ loggedInUsers: userNames });
 });
 
 app.get('/api/v1/session', (req, res) => {
@@ -40,12 +42,10 @@ app.post('/api/v1/session', (req, res) => {
         return;
     }
 
-    if (!loggedInUsers.includes(username)) {
-        loggedInUsers.push(username);
-    }
-
     const sid = sessions.addSession(username);
-    res.cookie('sid', sid);
+    loggedInUsers[sid] = username;
+
+    res.cookie('sid', sid, { httpOnly: true });
     res.json(chatRoom.getChats());
 });
 
@@ -53,9 +53,8 @@ app.delete('/api/v1/session', (req, res) => {
     const sid = req.cookies.sid;
     const username = sid ? sessions.getSessionUser(sid) : '';
 
-    const index = loggedInUsers.indexOf(username);
-    if (index > -1) {
-        loggedInUsers.splice(index, 1);
+    if (sid && loggedInUsers[sid]) {
+        delete loggedInUsers[sid];
     }
 
     if (sid) {
