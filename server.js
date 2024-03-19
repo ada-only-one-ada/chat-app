@@ -15,8 +15,8 @@ app.use(express.json());
 let loggedInUsers = {};
 
 app.get('/api/v1/loggedInUsers', (req, res) => {
-    const userNames = Object.values(loggedInUsers);
-    res.json({ loggedInUsers: userNames });
+    const usernames = Object.keys(loggedInUsers);
+    res.json({ loggedInUsers: usernames });
 });
 
 app.get('/api/v1/session', (req, res) => {
@@ -43,7 +43,8 @@ app.post('/api/v1/session', (req, res) => {
     }
 
     const sid = sessions.addSession(username);
-    loggedInUsers[sid] = username;
+
+    loggedInUsers[username] = (loggedInUsers[username] || 0) + 1;
 
     res.cookie('sid', sid, { httpOnly: true });
     res.json(chatRoom.getChats());
@@ -53,8 +54,11 @@ app.delete('/api/v1/session', (req, res) => {
     const sid = req.cookies.sid;
     const username = sid ? sessions.getSessionUser(sid) : '';
 
-    if (sid && loggedInUsers[sid]) {
-        delete loggedInUsers[sid];
+    if (loggedInUsers[username]) {
+        loggedInUsers[username] -= 1;
+        if (loggedInUsers[username] === 0) {
+            delete loggedInUsers[username];
+        }
     }
 
     if (sid) {
@@ -92,7 +96,7 @@ app.post('/api/v1/chats', (req, res) => {
         return;
     }
 
-    const newChat = chatRoom.addChat(author, message);
+    const newChat = chatRoom.sendChat(author, message);
     res.json(newChat);
 });
 

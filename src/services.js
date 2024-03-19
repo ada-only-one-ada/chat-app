@@ -44,7 +44,7 @@ export function fetchChats() {
         .then(handleResponse);
 }
 
-export function fetchAddChat(author, message) {
+export function fetchSendChat(author, message) {
     return fetch('/api/v1/chats', {
         method: 'POST',
         credentials: 'include',

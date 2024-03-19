@@ -1,12 +1,13 @@
-import { MESSAGES } from './constants';
+import { CLIENT, MESSAGES } from './constants';
 
 const state = {
     chats: [],
     isLoggedIn: false,
     isLoginPending: true,
-    isChatPending: false,
     username: '',
     loggedInUsers: [],
+    isLoggedInUsersPending: false,
+    isChatPending: false,
     error: '',
 };
 
@@ -19,13 +20,16 @@ export function waitOnLogin() {
 
 export function login(username) {
     state.isLoggedIn = true;
+    updateLogginUsersVisibility();
     state.isLoginPending = false;
     state.username = username;
     state.error = '';
 }
 
 export function logout() {
+    state.loggedInUsers = [];
     state.isLoggedIn = false;
+    updateLogginUsersVisibility();
     state.isLoginPending = false;
     state.username = '';
     state.error = '';
@@ -42,7 +46,7 @@ export function setChats(chats) {
     state.error = '';
 }
 
-export function addChat(chat) {
+export function sendChat(chat) {
     state.chats.push(chat);
     state.error = '';
 }
@@ -52,12 +56,34 @@ export function setError(error) {
         state.error = '';
         return;
     }
-    state.isLoginPending = false;
-    state.error = MESSAGES[error] || MESSAGES.default;
+
+    if (error === CLIENT.NETWORK_ERROR) {
+        logout();
+        state.error = MESSAGES[CLIENT.NETWORK_ERROR];
+    } else {
+        state.isLoginPending = false;
+        state.error = MESSAGES[error] || MESSAGES.default;
+    }
+}
+
+export function waitOnLoggedInUsers() {
+    state.isLoggedInUsersPending = true;
+    state.error = '';
 }
 
 export function setLoggedInUsers(loggedInUsers) {
     state.loggedInUsers = loggedInUsers;
+    state.isLoggedInUsersPending = false;
+    state.error = '';
+}
+
+function updateLogginUsersVisibility() {
+    const loginSection = document.getElementById('loggin-users__section');
+    if (state.isLoggedIn) {
+        loginSection.classList.add('shown');
+    } else {
+        loginSection.classList.remove('shown');
+    }
 }
 
 export default state;

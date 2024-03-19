@@ -1,8 +1,8 @@
-import { fetchLogin, fetchLogout, fetchChats, fetchAddChat, fetchLoggedInUsers } from './services';
-import { waitOnLogin, setChats, setError, login, logout, addChat, setLoggedInUsers } from './state';
+import { fetchLogin, fetchLogout, fetchChats, fetchSendChat, fetchLoggedInUsers } from './services';
+import { waitOnLogin, waitOnChats, waitOnLoggedInUsers, login, logout, setChats, sendChat, setLoggedInUsers, setError } from './state';
 import { render, renderLoggedInUsers } from './render';
 
-export function addAbilityToLogin({ state, appEl }) {
+export function addAbilityToLogin({ state, appEl, loginUserEl }) {
     appEl.addEventListener('submit', (e) => {
         if (!e.target.classList.contains('login__form')) {
             return;
@@ -10,23 +10,42 @@ export function addAbilityToLogin({ state, appEl }) {
 
         e.preventDefault();
         const username = appEl.querySelector('.login__username').value;
+
         waitOnLogin();
+        render({ state, appEl });
 
         fetchLogin(username)
-            .then(() => login(username))
-            .then(fetchLoggedInUsers)
-            .then(loggedInUersData => {
-                setLoggedInUsers(loggedInUersData.loggedUsers);
-                return fetchChats();
+            .then(() => {
+                return new Promise((resolve) => setTimeout(resolve, 1000))
             })
-            .then(chats => {
-                setChats(chats);
+            .then(() => {
+                login(username);
+                waitOnLoggedInUsers();
+                waitOnChats();
+
+                render({ state, appEl });
+                renderLoggedInUsers({ state, loginUserEl });
+
+                return new Promise(resolve => setTimeout(resolve, 1000));
+            })
+            .then(() => {
+                return Promise.all([
+                    fetchLoggedInUsers(),
+                    fetchChats()
+                ]);
+            })
+            .then(([loggedInUersData, chatsData]) => {
+                setLoggedInUsers(loggedInUersData.loggedUsers);
+                setChats(chatsData)
+
                 render({ state, appEl });
             })
             .catch(err => {
                 setError(err?.error || 'ERROR');
                 render({ state, appEl });
+                renderLoggedInUsers({ state, loginUserEl });
             });
+
     });
 }
 
@@ -39,37 +58,36 @@ export function addAbilityToLogout({ state, appEl, loginUserEl }) {
         fetchLogout()
             .then(() => {
                 logout();
-                return fetchLoggedInUsers();
-            })
-            .then(loggedInUersData => {
-                setLoggedInUsers(loggedInUersData.loggedUsers);
                 render({ state, appEl });
                 renderLoggedInUsers({ state, loginUserEl });
             })
             .catch(err => {
                 setError(err?.error || 'ERROR');
                 render({ state, appEl });
+                renderLoggedInUsers({ state, loginUserEl });
             });
     });
 }
 
-export function addAbilityToAddChat({ state, appEl }) {
+export function addAbilityToSendChat({ state, appEl, loginUserEl }) {
     appEl.addEventListener('submit', (e) => {
-        if (!e.target.classList.contains('add__form')) {
+        if (!e.target.classList.contains('send__form')) {
             return;
         }
 
+        e.preventDefault();
         const author = state.username;
-        const message = appEl.querySelector('.add__task').value;
+        const message = appEl.querySelector('.send__message').value;
 
-        fetchAddChat(author, message)
+        fetchSendChat(author, message)
             .then(chat => {
-                addChat(chat);
+                sendChat(chat);
                 render({ state, appEl });
             })
             .catch(err => {
                 setError(err?.error || 'ERROR');
                 render({ state, appEl });
+                renderLoggedInUsers({ state, loginUserEl });
             });
     });
 }

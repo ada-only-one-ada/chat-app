@@ -11,9 +11,9 @@ export const CLIENT = {
 };
 
 export const MESSAGES = {
-    [CLIENT.NETWORK_ERROR]: 'Trouble connecting to the network.  Please try again',
+    [CLIENT.NETWORK_ERROR]: 'Trouble connecting to the network.  Please login and try again',
     [SERVER.AUTH_INSUFFICIENT]: 'Your username/password combination does not match any records, please try again.',
     [SERVER.REQUIRED_USERNAME]: 'Please enter a valid (letters and/or numbers) username',
     [SERVER.REQUIRED_MESSAGE]: 'Please enter the message to send',
-    default: 'Something went wrong.  Please try again',
+    default: 'Something went wrong.  Please re-login and try again.',
 };

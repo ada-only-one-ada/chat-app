@@ -1,8 +1,8 @@
 import { SERVER, CLIENT } from './constants';
 import state, { login, logout, setChats, setError, setLoggedInUsers } from './state';
 import { fetchChats, fetchSession, fetchLoggedInUsers } from './services';
-import { render, renderLoggedInUsers } from './render';
-import { addAbilityToLogin, addAbilityToLogout, addAbilityToAddChat } from './listeners';
+import { render, renderChats, renderLoggedInUsers } from './render';
+import { addAbilityToLogin, addAbilityToLogout, addAbilityToSendChat } from './listeners';
 
 const appEl = document.querySelector('#app');
 const loginUserEl = document.querySelector('#users');
@@ -34,6 +34,7 @@ function checkForSession() {
             }
             setError(err?.error || 'ERROR');
             render({ state, appEl });
+            renderLoggedInUsers({ state, loginUserEl });
         });
 }
 
@@ -47,7 +48,7 @@ function periodicallyUpdateLoggedInUsers() {
                 })
                 .catch(err => console.error("Error updating logged-in users: ", err));
         }
-    }, 3000);
+    }, 5000);
 }
 
 function periodicallyUpdateChats() {
@@ -56,23 +57,24 @@ function periodicallyUpdateChats() {
             fetchChats()
                 .then(chats => {
                     setChats(chats);
-                    render({ state, appEl });
+                    const chatsEl = document.querySelector('.messages__container .chats');
+                    renderChats({ state, chatsEl });
                 })
                 .catch(err => console.error("Error updating logged-in users: ", err));
         }
-    }, 3000);
+    }, 5000);
 }
-
 
 function setupApp() {
     checkForSession();
 
-    addAbilityToLogin({ state, appEl });
+    addAbilityToLogin({ state, appEl, loginUserEl });
     addAbilityToLogout({ state, appEl, loginUserEl });
-
-    addAbilityToAddChat({ state, appEl });
+    addAbilityToSendChat({ state, appEl, loginUserEl });
 
     render({ state, appEl });
+    renderLoggedInUsers({ state, loginUserEl });
+
     periodicallyUpdateLoggedInUsers();
     periodicallyUpdateChats();
 }

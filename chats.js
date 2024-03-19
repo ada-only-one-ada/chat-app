@@ -1,9 +1,7 @@
-const uuid = require('uuid').v4;
-
 function makeChatRoom() {
     const chats = [];
 
-    function addChat(author, message) {
+    function sendChat(author, message) {
         const newChat = { author, message };
         chats.push(newChat);
         return newChat;
@@ -14,7 +12,7 @@ function makeChatRoom() {
     }
 
     return {
-        addChat, getChats
+        sendChat, getChats
     }
 };
 
