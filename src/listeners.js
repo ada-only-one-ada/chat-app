@@ -1,93 +1,98 @@
-import { fetchLogin, fetchLogout, fetchChats, fetchSendChat, fetchLoggedInUsers } from './services';
-import { waitOnLogin, waitOnChats, waitOnLoggedInUsers, login, logout, setChats, sendChat, setLoggedInUsers, setError } from './state';
-import { render, renderLoggedInUsers } from './render';
+import { fetchLogin, fetchLogout, fetchChats, fetchSendChat, fetchUsers } from './services';
+import { waitOnLogin, waitOnChats, waitOnUsers, login, logout, setChats, sendChat, setUsers, setError } from './state';
+import { render, renderChats, renderUsers } from './render';
+import { CLIENT } from './constants';
 
-export function addAbilityToLogin({ state, appEl, loginUserEl }) {
-    appEl.addEventListener('submit', (e) => {
+export function toLogin({ state, mainEl }) {
+    mainEl.addEventListener('submit', (e) => {
         if (!e.target.classList.contains('login__form')) {
             return;
         }
 
         e.preventDefault();
-        const username = appEl.querySelector('.login__username').value;
-
+        const username = mainEl.querySelector('.login__username').value;
         waitOnLogin();
-        render({ state, appEl });
+        render({ state, mainEl });
 
         fetchLogin(username)
+            .then(() => {
+                return new Promise((resolve) => setTimeout(resolve, 1000)); // loading chatroom for 1s 
+            })
+            .then(() => {
+                login(username);
+
+                waitOnChats();
+                waitOnUsers();
+                render({ state, mainEl });
+            })
             .then(() => {
                 return new Promise((resolve) => setTimeout(resolve, 1000))
             })
             .then(() => {
-                login(username);
-                waitOnLoggedInUsers();
-                waitOnChats();
-
-                render({ state, appEl });
-                renderLoggedInUsers({ state, loginUserEl });
-
-                return new Promise(resolve => setTimeout(resolve, 1000));
+                return Promise.all([fetchChats(), fetchUsers()]);
             })
-            .then(() => {
-                return Promise.all([
-                    fetchLoggedInUsers(),
-                    fetchChats()
-                ]);
-            })
-            .then(([loggedInUersData, chatsData]) => {
-                setLoggedInUsers(loggedInUersData.loggedUsers);
-                setChats(chatsData)
+            .then(([chats, users]) => {
+                setChats(chats);
+                setUsers(users);
 
-                render({ state, appEl });
+                const usersEl = document.querySelector('#users');
+                const chatsEl = document.querySelector('#chats');
+
+                renderChats({ state, chatsEl });
+                renderUsers({ state, usersEl });
             })
             .catch(err => {
                 setError(err?.error || 'ERROR');
-                render({ state, appEl });
-                renderLoggedInUsers({ state, loginUserEl });
+                render({ state, mainEl });
             });
-
     });
 }
 
-export function addAbilityToLogout({ state, appEl, loginUserEl }) {
-    appEl.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('controls__logout')) {
+export function toLogout({ state, mainEl }) {
+    mainEl.addEventListener('click', (e) => {
+        if (!e.target.classList.contains('logout')) {
             return;
         }
 
+        logout();
+        render({ state, mainEl });
+
         fetchLogout()
-            .then(() => {
-                logout();
-                render({ state, appEl });
-                renderLoggedInUsers({ state, loginUserEl });
-            })
             .catch(err => {
-                setError(err?.error || 'ERROR');
-                render({ state, appEl });
-                renderLoggedInUsers({ state, loginUserEl });
+                if (err.error === CLIENT.NETWORK_ERROR) {
+                    logout();
+                    render({ state, mainEl });
+                } else {
+                    setError(err?.error || 'ERROR');
+                    render({ state, mainEl });
+                }
             });
     });
 }
 
-export function addAbilityToSendChat({ state, appEl, loginUserEl }) {
-    appEl.addEventListener('submit', (e) => {
+export function toSendChat({ state, mainEl }) {
+    mainEl.addEventListener('submit', (e) => {
         if (!e.target.classList.contains('send__form')) {
             return;
         }
 
         e.preventDefault();
         const author = state.username;
-        const message = appEl.querySelector('.send__message').value;
+        const message = mainEl.querySelector('.send__message').value;
 
         fetchSendChat(author, message)
             .then(chat => {
                 sendChat(chat);
-                render({ state, appEl });
+                render({ state, mainEl });
             })
             .catch(err => {
-                setError(err?.error || 'ERROR');
-                render({ state, appEl });
-                renderLoggedInUsers({ state, loginUserEl });
+                if (err.error === CLIENT.NETWORK_ERROR) {
+                    logout();
+                    render({ state, mainEl });
+                } else {
+                    setError(err?.error || 'ERROR');
+                    render({ state, mainEl });
+                }
             });
     });
 }

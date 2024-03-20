@@ -1,54 +1,42 @@
-import { SERVER, CLIENT } from './constants';
-import state, { login, logout, setChats, setError, setLoggedInUsers } from './state';
-import { fetchChats, fetchSession, fetchLoggedInUsers } from './services';
-import { render, renderChats, renderLoggedInUsers } from './render';
-import { addAbilityToLogin, addAbilityToLogout, addAbilityToSendChat } from './listeners';
+import { SERVER, CLIENT } from "./constants";
+import state, { login, logout, setChats, setUsers, setError } from './state';
+import { fetchSession, fetchChats, fetchUsers } from "./services";
+import { render, renderChats, renderUsers } from './render';
+import { toLogin, toLogout, toSendChat } from "./listeners";
 
-const appEl = document.querySelector('#app');
-const loginUserEl = document.querySelector('#users');
+const mainEl = document.querySelector('#main');
 
 function checkForSession() {
     fetchSession()
         .then(session => {
             login(session.username);
-            render({ state, appEl });
-            return Promise.all([fetchChats(), fetchLoggedInUsers()]);
+            render({ state, mainEl });
+            return Promise.all([fetchChats(), fetchUsers()]);
         })
         .catch(err => {
             if (err?.error === SERVER.AUTH_MISSING) {
-                return Promise.reject({ error: CLIENT.NO_SESSION })
+                return Promise.reject({ error: CLIENT.NO_SESSION });
             }
             return Promise.reject(err);
         })
-        .then(([chats, loggedInUsers]) => {
+        .then(([chats, users]) => {
             setChats(chats);
-            setLoggedInUsers(loggedInUsers.loggedInUsers);
-            render({ state, appEl });
-            renderLoggedInUsers({ state, loginUserEl });
+            setUsers(users);
+
+            const usersEl = document.querySelector('#users');
+            const chatsEl = document.querySelector('#chats');
+            renderChats({ state, chatsEl });
+            renderUsers({ state, usersEl });
         })
         .catch(err => {
-            if (err?.error == CLIENT.NO_SESSION) {
+            if (err?.error === CLIENT.NO_SESSION) {
                 logout();
-                render({ state, appEl });
+                render({ state, mainEl });
                 return;
             }
             setError(err?.error || 'ERROR');
-            render({ state, appEl });
-            renderLoggedInUsers({ state, loginUserEl });
+            render({ state, mainEl });
         });
-}
-
-function periodicallyUpdateLoggedInUsers() {
-    setInterval(() => {
-        if (state.isLoggedIn) {
-            fetchLoggedInUsers()
-                .then(loggedInUsersData => {
-                    setLoggedInUsers(loggedInUsersData.loggedInUsers);
-                    renderLoggedInUsers({ state, loginUserEl });
-                })
-                .catch(err => console.error("Error updating logged-in users: ", err));
-        }
-    }, 5000);
 }
 
 function periodicallyUpdateChats() {
@@ -57,26 +45,37 @@ function periodicallyUpdateChats() {
             fetchChats()
                 .then(chats => {
                     setChats(chats);
-                    const chatsEl = document.querySelector('.messages__container .chats');
+                    const chatsEl = document.querySelector('#chats');
                     renderChats({ state, chatsEl });
                 })
-                .catch(err => console.error("Error updating logged-in users: ", err));
+                .catch(err => console.error("Error updating chats: ", err));
         }
     }, 5000);
 }
 
-function setupApp() {
-    checkForSession();
-
-    addAbilityToLogin({ state, appEl, loginUserEl });
-    addAbilityToLogout({ state, appEl, loginUserEl });
-    addAbilityToSendChat({ state, appEl, loginUserEl });
-
-    render({ state, appEl });
-    renderLoggedInUsers({ state, loginUserEl });
-
-    periodicallyUpdateLoggedInUsers();
-    periodicallyUpdateChats();
+function periodicallyUpdateUsers() {
+    setInterval(() => {
+        if (state.isLoggedIn) {
+            fetchUsers()
+                .then(users => {
+                    setUsers(users);
+                    const usersEl = document.querySelector('#users');
+                    renderUsers({ state, usersEl });
+                })
+                .catch(err => console.error("Error updating users: ", err));
+        }
+    }, 5000);
 }
 
-setupApp();
+function initChatapp() {
+    checkForSession();
+    toLogin({ state, mainEl });
+    toLogout({ state, mainEl });
+    toSendChat({ state, mainEl });
+    render({ state, mainEl });
+    periodicallyUpdateChats();
+    periodicallyUpdateUsers();
+}
+
+initChatapp();
+

@@ -1,5 +1,5 @@
 {
-  "name": "chat",
+  "name": "chat-app",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,7 +11,7 @@
     "dev:server": "nodemon server.js"
   },
   "keywords": [],
-  "author": "Yuqing Gong <gong.yuq@northeastern.edu>",
+  "author": "",
   "license": "ISC",
   "dependencies": {
     "cookie-parser": "^1.4.6",

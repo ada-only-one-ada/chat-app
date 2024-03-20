@@ -1,53 +1,63 @@
-import { CLIENT, MESSAGES } from './constants';
+import { CLIENT, ERROR_MESSAGES } from './constants';
 
 const state = {
-    chats: [],
-    isLoggedIn: false,
-    isLoginPending: true,
     username: '',
-    loggedInUsers: [],
-    isLoggedInUsersPending: false,
-    isChatPending: false,
+    isLoggedIn: false,
     error: '',
-};
 
-export function waitOnLogin() {
-    state.isLoggedIn = false;
-    state.isLoginPending = true;
-    state.username = '';
+    chats: [],
+    users: [],
+
+    loginLoading: true, // We start with our login status unknown
+    chatsLoading: false,
+    usersLoading: false,
+}
+
+export function setChats(chats) {
+    state.chats = chats;
+    state.chatsLoading = false;
+    state.error = '';
+}
+
+export function sendChat(newChat) {
+    state.chats.push(newChat);
+    state.error = '';
+}
+
+export function setUsers(users) {
+    state.users = users;
+    state.usersLoading = false;
     state.error = '';
 }
 
 export function login(username) {
     state.isLoggedIn = true;
-    updateLogginUsersVisibility();
-    state.isLoginPending = false;
+    state.loginLoading = false;
     state.username = username;
     state.error = '';
 }
 
 export function logout() {
-    state.loggedInUsers = [];
     state.isLoggedIn = false;
-    updateLogginUsersVisibility();
-    state.isLoginPending = false;
+    state.loginLoading = false;
     state.username = '';
     state.error = '';
 }
 
+export function waitOnLogin() {
+    state.loginLoading = true;
+    state.username = '';
+    state.isLoggedIn = false;
+    state.error = '';
+}
+
 export function waitOnChats() {
-    state.isChatPending = true;
+    state.chatsLoading = true;
     state.error = '';
 }
 
-export function setChats(chats) {
-    state.chats = chats;
-    state.isChatPending = false;
-    state.error = '';
-}
-
-export function sendChat(chat) {
-    state.chats.push(chat);
+export function waitOnUsers() {
+    state.usersLoading = true;
     state.error = '';
 }
 
@@ -57,34 +67,8 @@ export function setError(error) {
         return;
     }
 
-    if (error === CLIENT.NETWORK_ERROR) {
-        logout();
-        state.error = MESSAGES[CLIENT.NETWORK_ERROR];
-    } else {
-        state.isLoginPending = false;
-        state.error = MESSAGES[error] || MESSAGES.default;
-    }
-}
-
-export function waitOnLoggedInUsers() {
-    state.isLoggedInUsersPending = true;
-    state.error = '';
-}
-
-export function setLoggedInUsers(loggedInUsers) {
-    state.loggedInUsers = loggedInUsers;
-    state.isLoggedInUsersPending = false;
-    state.error = '';
-}
-
-function updateLogginUsersVisibility() {
-    const loginSection = document.getElementById('loggin-users__section');
-    if (state.isLoggedIn) {
-        loginSection.classList.add('shown');
-    } else {
-        loginSection.classList.remove('shown');
-    }
+    state.loginLoading = false;
+    state.error = ERROR_MESSAGES[error] || ERROR_MESSAGES.default;
 }
 
 export default state;
-

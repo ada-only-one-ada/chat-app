@@ -1,128 +1,155 @@
-function render({ state, appEl }) {
-  const html = `
-     ${generateLoginHtml(state)}
-     
-     ${generateContentHtml(state)}
-     ${generateStatusHtml(state)}
-  `;
-  appEl.innerHTML = html;
-  scrollToBottom();
-}
-
-function renderLoggedInUsers({ state, loginUserEl }) {
-  if (!state.isLoggedIn) {
-    loginUserEl.innerHTML = '';
-    return;
-  }
-
-  const html = generateLogginInUsers(state);
-  loginUserEl.innerHTML = html;
-}
-
 function renderChats({ state, chatsEl }) {
-  if (!state.isLoggedIn) {
-    return;
-  }
-
-  const html = generateChatsHtml(state);
-  chatsEl.innerHTML = html;
-  scrollToBottom();
+    if (!state.isLoggedIn) {
+        chatsEl.innerHTML = '';
+        return;
+    }
+    const html = generateChatsHtml(state);
+    chatsEl.innerHTML = html;
+    scrollToBottom()
 }
 
-function generateLogginInUsers(state) {
-  if (state.isLoggedInUsersPending || !state.loggedInUsers) {
-    return `
-    <i class="gg-spinner"></i>
-    <div class="users__waiting">Loading online users...</div>
-    `;
-  }
-
-  const logginInUsersHtml = Object.values(state.loggedInUsers).map(user => {
-    return `
-    <li class="user"> ${user}</li>
-    `
-  }).join('');
-  return logginInUsersHtml;
+function renderUsers({ state, usersEl }) {
+    if (!state.isLoggedIn) {
+        usersEl.innerHTML = '';
+        return;
+    }
+    const html = generateUsersHtml(state);
+    usersEl.innerHTML = html;
 }
 
-function generateStatusHtml(state) {
-  return `
-      <div class="status">${state.error}</div>
-  `;
-}
+function render({ state, mainEl }) {
+    if (state.isLoggedIn) {
+        const html = `
+        <div class="wrapper">
+            <div class="chats__section">
+                ${generateLogoutButtonHtml(state)}
+                
+                <ol id="chats">
+                    ${generateChatsHtml(state)}
+                </ol>
+                ${generateSendChatFormHtml(state)}
+                ${generateErrorMessageHtml(state)}
+            </div>
 
-function generateLoginHtml(state) {
-  if (state.isLoginPending) {
-    return `
-      <i class="gg-spinner"></i>
-      <div class="login__waiting">Loading user...</div>
-    `
-  }
-  if (state.isLoggedIn) {
-    return ``;
-  }
-
-  return `
-      <div class="login">
-        <form class="login__form">
-          <label><span>Username</span><input class="login__username" value=""></label>
-          <button class="login__button" type="submit">Login</button>
-        </form>
-      </div>
-  `;
-}
-
-function generateContentHtml(state) {
-  if (!state.isLoggedIn) {
-    return ``;
-  }
-
-  return `
-      <div class="content">
-        <button class="controls__logout">Logout</button>
-        <div class="messages__container">
-           <ul class="chats">${generateChatsHtml(state)}</ul>
+            <div class="users__section">
+                <h2 class="users__title">Online Users</h2>
+                <ol id="users">
+                    ${generateUsersHtml(state)}
+                </ol>
+            </div>
         </div>
-        ${generateSendChatHtml(state)}
-      </div>
-  `;
+        `
+        mainEl.innerHTML = html;
+    }
+
+    if (!state.isLoggedIn) {
+        const html = `
+        ${generateLoginFormHtml(state)}
+        ${generateErrorMessageHtml(state)}
+        `
+        mainEl.innerHTML = html;
+    }
+    scrollToBottom();
+}
+
+function generateLoginFormHtml(state) {
+    if (state.loginLoading) {
+        return `
+        <i class="gg-spinner"></i>
+        <div class="login__waiting">Loading your chatroom...</div>
+        `
+    }
+
+    if (state.isLoggedIn) {
+        return ``;
+    }
+
+    return `
+    <div class="login">
+        <form class="login__form">
+            <label>Username
+                <input class="login__username" value="">
+            </label>
+            <button class="login__button" type="submit">Login</button>
+        </form>
+    </div>
+    `
+}
+
+function generateLogoutButtonHtml(state) {
+    return `
+    <button class="logout">Logout</button>
+    `
+}
+
+function generateSendChatFormHtml(state) {
+    return `
+    <div class="send">
+        <form class="send__form">
+            <input class="send__message">
+            <button class="send__button" type="submit">Send</button>
+        </form>
+    </div>
+    `;
+}
+
+function generateErrorMessageHtml(state) {
+    return `
+    <div class="error">${state.error}</div>
+    `
 }
 
 function generateChatsHtml(state) {
-  if (state.isChatPending) {
-    return `
-    <i class="gg-spinner"></i>
-    <p>Loading chats...</p>
-    `;
-  }
+    if (state.chatsLoading) {
+        return `
+        <i class="gg-spinner"></i>
+        <div class="chats__waiting">Loading chats...</div>
+        `
+    }
 
-  const chatsHtml = Object.values(state.chats).map(chat => {
-    return `
-      <li class="chat"><span class="chat__author">${chat.author}</span>: ${chat.message}</li>
-    `;
-  }).join('');
-  return chatsHtml;
+    if (!state.isLoggedIn) {
+        return ``;
+    }
+
+    const chatsHtml = Object.values(state.chats).map(chat => {
+        return `
+        <li class="chat"><span class="author">${chat.author}</span>: ${chat.message}</li>
+        `
+    }).join('');
+
+    return chatsHtml;
 }
 
-function generateSendChatHtml(state) {
-  return `
-        <form class="send__form">
-          <input class="send__message">
-          <button type="submit" class="send__button">Send</button>
-        </form>
-  `;
+function generateUsersHtml(state) {
+    if (state.usersLoading) {
+        return `
+        <i class="gg-spinner"></i>
+        <div class="users__waiting">Loading online users...</div>
+        `
+    }
+
+    if (!state.isLoggedIn) {
+        return ``;
+    }
+
+    const usersHtml = Object.keys(state.users).map(user => {
+        return `
+        <li class="user"><span class="user__username">${user}</span></li>
+        `
+    }).join('');
+
+    return usersHtml;
+}
+
+function scrollToBottom() {
+    const chatsEl = document.querySelector('#chats');
+    if (chatsEl) {
+        chatsEl.scrollTop = chatsEl.scrollHeight;
+    }
 }
 
 module.exports = {
-  render,
-  renderLoggedInUsers,
-  renderChats
+    render,
+    renderUsers,
+    renderChats
 };
-
-
-function scrollToBottom() {
-  const chatsContainer = document.querySelector('.messages__container');
-  if (chatsContainer) {
-    chatsContainer.scrollTop = chatsContainer.scrollHeight;
-  }
-}
